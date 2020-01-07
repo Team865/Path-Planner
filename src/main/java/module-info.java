@@ -5,4 +5,6 @@ module path.planner {
     requires wpilibj.java;
     requires wpiutil.java;
     requires com.fasterxml.jackson.core;
+
+    exports ca.warp7.planner2;
 }
