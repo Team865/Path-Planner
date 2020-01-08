@@ -1,4 +1,4 @@
-package ca.warp7.planner2
+package ca.warp7.planner2.state
 
 import edu.wpi.first.wpilibj.geometry.Translation2d
 

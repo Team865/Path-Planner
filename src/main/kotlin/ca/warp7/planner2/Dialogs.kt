@@ -23,8 +23,8 @@ class Dialogs(val stage: Stage) {
     private val aboutButton = menuItem("About", combo(KeyCode.F1, shift = true)) {
         val dialog = Dialog<ButtonType>()
         dialog.title = "About FRC Drive Trajectory Planner"
-        dialog.contentText = """FRC Drive Trajectory Planner version 2019.9.0
-Copyright (c) 2019 Team 865 WARP7
+        dialog.contentText = """FRC Drive Trajectory Planner version 2020.1.0
+Copyright (c) 2019,2020 Team 865 WARP7
 Licensed under MIT
 OS:  ${System.getProperty("os.name")} ${System.getProperty("os.arch")}
 Java Runtime: ${System.getProperty("java.vm.name")} ${System.getProperty("java.vm.version")}

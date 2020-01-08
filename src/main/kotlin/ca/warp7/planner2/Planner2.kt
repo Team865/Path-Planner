@@ -2,6 +2,11 @@ package ca.warp7.planner2
 
 import ca.warp7.planner2.fx.combo
 import ca.warp7.planner2.fx.menuItem
+import ca.warp7.planner2.state.Constants
+import ca.warp7.planner2.state.Path
+import ca.warp7.planner2.state.PixelReference
+import javafx.application.Platform
+import javafx.beans.value.ChangeListener
 import javafx.collections.FXCollections
 import javafx.collections.MapChangeListener
 import javafx.collections.ObservableMap
@@ -9,23 +14,31 @@ import javafx.geometry.Insets
 import javafx.scene.Scene
 import javafx.scene.canvas.Canvas
 import javafx.scene.canvas.GraphicsContext
-import javafx.scene.control.*
+import javafx.scene.control.Label
+import javafx.scene.control.Menu
+import javafx.scene.control.MenuBar
+import javafx.scene.control.MenuItem
 import javafx.scene.image.Image
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCombination
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.HBox
+import javafx.scene.layout.Pane
 import javafx.scene.layout.VBox
+import javafx.scene.paint.Color
 import javafx.stage.Stage
+import kotlin.math.max
+import kotlin.math.min
 
-class Planner2  {
+class Planner2 {
 
     val stage = Stage()
 
     val menuBar = MenuBar()
 
-    val canvas = Canvas()
+    val canvas: Canvas = Canvas()
+    val canvasContainer = Pane(canvas)
 
     val pathStatus: ObservableMap<String, String> = FXCollections
             .observableMap<String, String>(LinkedHashMap())
@@ -41,7 +54,7 @@ class Planner2  {
 
     val view = BorderPane().apply {
         top = menuBar
-        left = canvas
+        center = canvasContainer
         bottom = VBox().apply {
             children.addAll(
                     HBox().apply {
@@ -84,6 +97,9 @@ class Planner2  {
 
     var controlDown = false
 
+    val path = Path()
+    val ref = PixelReference()
+
     private val fileMenu = Menu("File", null,
             menuItem("New/Open Trajectory", combo(KeyCode.N, control = true)) {
                 PathWizard(stage).show()
@@ -92,10 +108,11 @@ class Planner2  {
 
             },
             menuItem("Configure Path", combo(KeyCode.COMMA, control = true)) {
-//                config.showSettings(stage)
+                //                config.showSettings(stage)
 //                regenerate()
             },
-            MenuItem("Generate WPILib function"),
+            MenuItem("Generate WPILib Java function"),
+            MenuItem("Generate WPILib C++ function"),
             MenuItem("Generate PathFinder-style CSV")
     )
 
@@ -114,7 +131,7 @@ class Planner2  {
 
             },
             menuItem("Select All", combo(KeyCode.A, control = true)) {
-//                for (cp in state.controlPoints) cp.isSelected = true
+                //                for (cp in state.controlPoints) cp.isSelected = true
 //                redrawScreen()
             }
     )
@@ -147,7 +164,7 @@ class Planner2  {
             MenuItem("Resize Canvas to Window"),
             menuItem("Start/Pause Simulation", combo(KeyCode.SPACE)) { onSpacePressed() },
             menuItem("Stop Simulation", combo(KeyCode.DIGIT0)) { stopSimulation() },
-            menuItem("Toggle graphs", combo(KeyCode.G)) {  }
+            menuItem("Toggle graphs", combo(KeyCode.G)) { }
     )
 
     init {
@@ -204,5 +221,46 @@ class Planner2  {
 //            }
 //        }
 //        regenerate()
+    }
+
+    fun show() {
+        Platform.runLater {
+            regenerate()
+            stage.show()
+            val resizeListener = ChangeListener<Number> { _, _, _ ->
+                redrawScreen()
+            }
+
+            canvas.widthProperty().bind(canvasContainer.widthProperty())
+            canvas.heightProperty().bind(canvasContainer.heightProperty())
+            canvas.widthProperty().addListener(resizeListener)
+            canvas.heightProperty().addListener(resizeListener)
+        }
+    }
+
+    fun regenerate() {
+        pointStatus["Test"] = "Hello World"
+        redrawScreen()
+    }
+
+    fun redrawScreen() {
+        val bg = path.background
+        val imageWidthToHeight = bg.width / bg.height
+
+        var w = canvas.width - 32
+        var h = canvas.height - 32
+
+        w = min(w,  h * imageWidthToHeight)
+        h = min(w * imageWidthToHeight, w / imageWidthToHeight)
+        w = h * imageWidthToHeight
+
+        val offsetX = (canvas.width - w) / 2.0
+        val offsetY = (canvas.height - h) / 2.0
+
+        ref.set(w , h, offsetX, offsetY, Constants.kFieldSize * 2, Constants.kFieldSize)
+
+        gc.fill = Color.WHITE
+        gc.fillRect(0.0, 0.0, canvas.width, canvas.height)
+        gc.drawImage(bg, offsetX, offsetY, w, h)
     }
 }

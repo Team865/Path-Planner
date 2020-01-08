@@ -7,7 +7,7 @@ import javafx.stage.Stage
 class PlannerApplication : Application() {
     override fun start(primaryStage: Stage) {
         host = hostServices
-        Planner2().stage.show()
+        Planner2().show()
     }
 
     companion object {
