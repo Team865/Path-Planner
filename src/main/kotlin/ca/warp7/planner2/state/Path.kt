@@ -35,5 +35,6 @@ class Path {
         trajectoryList.add(TrajectoryParameterizer.timeParameterizeTrajectory(x, listOf(),
                 0.0, 0.0, 3.0,
                 3.0, false))
+        totalTime = trajectoryList.sumByDouble { it.totalTimeSeconds }
     }
 }

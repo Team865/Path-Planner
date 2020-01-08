@@ -1,6 +1,7 @@
 package ca.warp7.planner2
 
 import ca.warp7.planner2.state.Constants
+import ca.warp7.planner2.state.Path
 import ca.warp7.planner2.state.PixelReference
 import edu.wpi.first.wpilibj.geometry.Pose2d
 import edu.wpi.first.wpilibj.geometry.Rotation2d
@@ -8,6 +9,7 @@ import edu.wpi.first.wpilibj.geometry.Translation2d
 import edu.wpi.first.wpilibj.trajectory.Trajectory
 import javafx.scene.canvas.GraphicsContext
 import javafx.scene.paint.Color
+import javafx.scene.text.FontSmoothingType
 import kotlin.math.abs
 
 fun drawArrowForPose(ref: PixelReference, gc: GraphicsContext, point: Pose2d) {
@@ -154,4 +156,80 @@ fun drawRobot(
     gc.closePath()
     gc.stroke()
     gc.fill()
+}
+
+
+fun drawGraph(gc: GraphicsContext, path: Path) {
+    gc.fontSmoothingType = FontSmoothingType.LCD
+    gc.lineWidth = 1.0
+    gc.fill = Color.BLACK
+    gc.fillText("Velocity vs Time", 0.0, 190.0)
+    gc.fillText("Time Steps", 0.0, 325.0)
+    gc.fillText("Acceleration vs Time", 0.0, 374.0)
+    gc.stroke = Color.ORANGE
+    var trackedTime = 0.0
+    for (trajectory in path.trajectoryList) {
+        for (trajectoryState in trajectory.states) {
+            val progress = (trajectoryState.timeSeconds + trackedTime) / path.totalTime
+            val x = (0 + progress * 474)
+            gc.strokeLine(x, 335.0, x, 350.0)
+        }
+        trackedTime += trajectory.totalTimeSeconds
+    }
+    gc.stroke = Color.LIGHTGRAY
+    gc.lineWidth = 1.0
+
+    val accPxPerM = 50.0 / path.maxAcceleration
+    val min = 384.0
+    val max = 484.0
+    gc.strokeLine(0.0, min, 0.0 + 474.0, min)
+    gc.strokeLine(0.0, max, 0.0 + 474.0, max)
+    var accStep = -path.maxAcceleration.toInt()
+    while (accStep < path.maxAcceleration) {
+        val h = min + (path.maxAcceleration - accStep) * accPxPerM
+        gc.strokeLine(0.0, h, 0.0 + 474.0, h)
+        accStep++
+    }
+
+    val velPxPerM = 50.0 / path.maxVelocity
+    val min2 = 200.0
+    val max2 = 300.0
+    gc.strokeLine(0.0, min2, 0.0 + 474.0, min2)
+    gc.strokeLine(0.0, max2, 0.0 + 474.0, max2)
+    var velStep = -path.maxVelocity.toInt()
+    while (velStep < path.maxVelocity) {
+        val h = min2 + (path.maxVelocity - velStep) * velPxPerM
+        gc.strokeLine(0.0, h, 0.0 + 474.0, h)
+        velStep++
+    }
+
+    gc.lineWidth = 2.0
+    gc.stroke = Color.rgb(0, 128, 192)
+    trackedTime = 0.0
+    gc.beginPath()
+    for (trajectory in path.trajectoryList) {
+        for (trajectoryState in trajectory.states) {
+            val progress = (trajectoryState.timeSeconds + trackedTime) / path.totalTime
+            val dv = trajectoryState.accelerationMetersPerSecondSq
+
+            gc.lineTo(0 + progress * 474,
+                    434 - dv / path.maxAcceleration * 50)
+        }
+        trackedTime += trajectory.totalTimeSeconds
+    }
+    gc.stroke()
+    gc.lineWidth = 2.0
+    gc.stroke = Color.rgb(128, 128, 255)
+    trackedTime = 0.0
+    gc.beginPath()
+    for (trajectory in path.trajectoryList) {
+        for (trajectoryState in trajectory.states) {
+            val progress = (trajectoryState.timeSeconds + trackedTime) / path.totalTime
+            val v = trajectoryState.velocityMetersPerSecond
+
+            gc.lineTo(0 + progress * 474, 250 - v / path.maxVelocity * 50)
+        }
+        trackedTime += trajectory.totalTimeSeconds
+    }
+    gc.stroke()
 }

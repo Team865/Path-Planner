@@ -25,12 +25,10 @@ import javafx.scene.image.Image
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCombination
 import javafx.scene.input.MouseEvent
-import javafx.scene.layout.BorderPane
-import javafx.scene.layout.HBox
-import javafx.scene.layout.Pane
-import javafx.scene.layout.VBox
+import javafx.scene.layout.*
 import javafx.scene.paint.Color
 import javafx.stage.Stage
+import javafx.stage.StageStyle
 import kotlin.math.min
 import kotlin.system.measureNanoTime
 
@@ -169,7 +167,7 @@ class Planner2 {
             MenuItem("Resize Canvas to Window"),
             menuItem("Start/Pause Simulation", combo(KeyCode.SPACE)) { onSpacePressed() },
             menuItem("Stop Simulation", combo(KeyCode.DIGIT0)) { stopSimulation() },
-            menuItem("Toggle graphs", combo(KeyCode.G)) { }
+            menuItem("Toggle graphs", combo(KeyCode.G, control = true)) { toggleGraphs() }
     )
 
     init {
@@ -209,6 +207,23 @@ class Planner2 {
 
     fun stopSimulation() {
 
+    }
+
+    fun toggleGraphs() {
+        val ns = Stage()
+        ns.title = "Graphs"
+        ns.initOwner(stage)
+        ns.initStyle(StageStyle.UTILITY)
+        val canvas = Canvas()
+        canvas.width = 800.0
+        canvas.height = 800.0
+        val cont = Pane(canvas)
+        val scene = Scene(cont)
+        ns.width = 400.0
+        ns.height = 400.0
+        ns.scene = scene
+        ns.show()
+        drawGraph(canvas.graphicsContext2D, path)
     }
 
     fun transformSelected(x: Double, y: Double, theta: Double, fieldRelative: Boolean) {

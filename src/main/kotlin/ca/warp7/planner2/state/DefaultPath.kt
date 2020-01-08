@@ -10,7 +10,7 @@ fun getDefaultPath(): Path {
 
     path.apply {
         //        background = Image(FileInputStream("C:\\Users\\Yu\\IdeaProjects\\FRC-Commons-Kotlin\\path-planner\\src\\main\\resources\\field.PNG"))
-        maxVelocity = 3.5
+        maxVelocity = 3.0
         maxAcceleration = 3.0
 //        maxCentripetalAcceleration = 4.0
         robotLength = 0.42
