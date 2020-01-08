@@ -3,8 +3,11 @@ package ca.warp7.planner2
 import ca.warp7.planner2.fx.combo
 import ca.warp7.planner2.fx.menuItem
 import ca.warp7.planner2.state.Constants
-import ca.warp7.planner2.state.Path
 import ca.warp7.planner2.state.PixelReference
+import ca.warp7.planner2.state.getDefaultPath
+import edu.wpi.first.wpilibj.geometry.Pose2d
+import edu.wpi.first.wpilibj.geometry.Rotation2d
+import edu.wpi.first.wpilibj.geometry.Translation2d
 import javafx.application.Platform
 import javafx.beans.value.ChangeListener
 import javafx.collections.FXCollections
@@ -28,7 +31,6 @@ import javafx.scene.layout.Pane
 import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import javafx.stage.Stage
-import kotlin.math.max
 import kotlin.math.min
 
 class Planner2 {
@@ -39,6 +41,8 @@ class Planner2 {
 
     val canvas: Canvas = Canvas()
     val canvasContainer = Pane(canvas)
+
+    var simulating = false
 
     val pathStatus: ObservableMap<String, String> = FXCollections
             .observableMap<String, String>(LinkedHashMap())
@@ -97,7 +101,7 @@ class Planner2 {
 
     var controlDown = false
 
-    val path = Path()
+    val path = getDefaultPath()
     val ref = PixelReference()
 
     private val fileMenu = Menu("File", null,
@@ -250,17 +254,29 @@ class Planner2 {
         var w = canvas.width - 32
         var h = canvas.height - 32
 
-        w = min(w,  h * imageWidthToHeight)
+        w = min(w, h * imageWidthToHeight)
         h = min(w * imageWidthToHeight, w / imageWidthToHeight)
         w = h * imageWidthToHeight
 
         val offsetX = (canvas.width - w) / 2.0
         val offsetY = (canvas.height - h) / 2.0
 
-        ref.set(w , h, offsetX, offsetY, Constants.kFieldSize * 2, Constants.kFieldSize)
+        ref.set(w, h, offsetX, offsetY, Constants.kFieldSize * 2, Constants.kFieldSize)
 
         gc.fill = Color.WHITE
         gc.fillRect(0.0, 0.0, canvas.width, canvas.height)
         gc.drawImage(bg, offsetX, offsetY, w, h)
+        drawAllControlPoints()
+    }
+
+    private fun drawAllControlPoints() {
+        if (simulating) return
+        for (controlPoint in path.controlPoints) {
+            gc.stroke = when {
+                controlPoint.isSelected -> Color.rgb(0, 255, 255)
+                else -> Color.rgb(255, 255, 0)
+            }
+            drawArrowForPose(ref, gc, controlPoint.pose)
+        }
     }
 }
