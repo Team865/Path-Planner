@@ -1,5 +1,6 @@
 package ca.warp7.planner2
 
+import ca.warp7.planner2.fx.checkItem
 import ca.warp7.planner2.fx.combo
 import ca.warp7.planner2.fx.menuItem
 import ca.warp7.planner2.state.Constants
@@ -32,6 +33,7 @@ import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import javafx.stage.Stage
 import kotlin.math.min
+import kotlin.system.measureNanoTime
 
 class Planner2 {
 
@@ -247,6 +249,33 @@ class Planner2 {
     }
 
     fun regenerate() {
+
+        val time = measureNanoTime {
+            path.regenerateAll()
+        } / 1E6
+
+        pathStatus.putAll(mapOf(
+                "∫(dξ)" to "${path.totalDist.f2}m",
+                "∫(dt)" to "${path.trajectory.totalTimeSeconds.f2}s",
+                "Σ(dCurvature²)" to path.totalSumOfCurvature.f2,
+                "Optimize" to path.optimizing.toString(),
+                "MaxVel" to "", //state.maxVelString(),
+                "MaxAcc" to "", // state.maxAccString(),
+                "MaxCAcc" to "", // state.maxAcString(),
+                "ComputeTime" to "${time.f2}ms"
+        ))
+        pointStatus.putAll(mapOf(
+                "t" to "0.0s",
+                "x" to "0.0m",
+                "y" to "0.0m",
+                "heading" to "0.0deg",
+                "curvature" to "0.0rad/m",
+                "v" to "0.0m/s",
+                "ω" to "0.0rad/s",
+                "dv/dt" to "0.0m/s^2",
+                "dω/dt" to "0.0rad/s^2"
+        ))
+
         pointStatus["Test"] = "Hello World"
         redrawScreen()
     }
