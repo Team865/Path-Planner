@@ -20,11 +20,8 @@ class PathWizard(owner: Stage?) {
         
         val c = Configuration()
 
-        val wheelbase = TextField(c.wheelbaseRadius.toString())
         val maxVel = TextField(c.maxVelocity.toString())
         val maxAcc = TextField(c.maxAcceleration.toString())
-        val maxCA = TextField(c.maxCentripetalAcceleration.toString())
-        val maxJ = TextField(c.maxJerk.toString())
         val botWidth = TextField(c.robotWidth.toString())
         val botLength = TextField(c.robotLength.toString())
         
@@ -35,7 +32,7 @@ class PathWizard(owner: Stage?) {
             val chooser = FileChooser()
             chooser.title = "Choose Half Field Background"
             chooser.extensionFilters.add(FileChooser.ExtensionFilter("PNG", "*.png"))
-            val f = chooser.showOpenDialog(null)
+            val f = chooser.showOpenDialog(dialog.dialogPane.scene.window)
 
             if (f != null && f.name.endsWith("png")) {
                 try {
@@ -49,12 +46,16 @@ class PathWizard(owner: Stage?) {
         val f2020 = Button("Load 2020 Blue")
         val f20202 = Button("Load 2020 Red")
 
+        val openJSON = Button("Open JSON File")
+        openJSON.setOnAction {
+            val fc = FileChooser()
+            fc.showOpenDialog(dialog.dialogPane.scene.window)
+        }
+
         dialog.dialogPane.content = GridPane().apply {
             hgap = 8.0
             vgap = 8.0
-            add(Button("Open JSON File"), 0, 0, 3, 1)
-            add(Label("Effective Wheelbase Radius"), 0, 1)
-            add(wheelbase, 1, 1)
+            add(openJSON, 0, 0, 3, 1)
 
             add(Label("Max Velocity"), 0, 2)
             add(maxVel, 1, 2)
@@ -62,17 +63,11 @@ class PathWizard(owner: Stage?) {
             add(Label("Max Acceleration"), 0, 3)
             add(maxAcc, 1, 3)
 
-            add(Label("Max Centripetal Acceleration"), 0, 4)
-            add(maxCA, 1, 4)
+            add(Label("Robot Width (m)"), 0, 4)
+            add(botWidth, 1, 4)
 
-            add(Label("Max Jerk"), 0, 5)
-            add(maxJ, 1, 5)
-
-            add(Label("Robot Width (for graphics)"), 0, 6)
-            add(botWidth, 1, 6)
-
-            add(Label("Robot Length (for graphics)"), 0, 7)
-            add(botLength, 1, 7)
+            add(Label("Robot Length (m)"), 0, 5)
+            add(botLength, 1, 5)
 
             add(Label("Half Field Background"), 2, 1)
             add(choose, 2, 2)

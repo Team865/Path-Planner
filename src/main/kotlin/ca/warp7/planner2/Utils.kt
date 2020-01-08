@@ -1,5 +1,6 @@
 package ca.warp7.planner2
 
+import ca.warp7.planner2.constraint.*
 import edu.wpi.first.wpilibj.geometry.Translation2d
 import javafx.scene.canvas.GraphicsContext
 
@@ -11,3 +12,11 @@ fun GraphicsContext.vertex(a: Translation2d) = lineTo(a.x, a.y)
 fun snap(t: Translation2d): Translation2d {
     return Translation2d((t.x * 1000).toInt() / 1000.0, (t.y * 1000).toInt() / 1000.0)
 }
+
+val handlers = listOf(
+        DifferentialDriveKinematicsHandler(),
+        DifferentialDriveVoltageHandler(),
+        CentripetalAccelerationHandler(),
+        MecanumKinematicsHandler(),
+        SwerveKinematicsHandler()
+)

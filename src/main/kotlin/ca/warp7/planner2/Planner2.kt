@@ -9,12 +9,10 @@ import javafx.geometry.Insets
 import javafx.scene.Scene
 import javafx.scene.canvas.Canvas
 import javafx.scene.canvas.GraphicsContext
-import javafx.scene.control.Label
-import javafx.scene.control.Menu
-import javafx.scene.control.MenuBar
-import javafx.scene.control.MenuItem
+import javafx.scene.control.*
 import javafx.scene.image.Image
 import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyCombination
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.HBox
@@ -75,7 +73,7 @@ class Planner2  {
         canvas.isFocusTraversable = true
         canvas.addEventFilter(MouseEvent.MOUSE_CLICKED) { canvas.requestFocus() }
         stage.scene = Scene(view)
-        stage.title = "FRC Drive Trajectory Planner"
+        stage.title = "FRC Drive Path Planner"
         stage.width = 1000.0
         stage.height = 600.0
         stage.icons.add(Image(Planner2::class.java.getResourceAsStream("/icon.png")))
@@ -97,11 +95,6 @@ class Planner2  {
 //                config.showSettings(stage)
 //                regenerate()
             },
-            menuItem("Generate Commons-based Command", null) {
-//                val s = toCommonsCommand(state)
-//                dialogs.showTextBox("Command", s)
-            },
-            MenuItem("Generate Java Command"),
             MenuItem("Generate WPILib function"),
             MenuItem("Generate PathFinder-style CSV")
     )
@@ -126,52 +119,48 @@ class Planner2  {
             }
     )
 
+    private fun transformItem(name: String, combo: KeyCombination, x: Double,
+                              y: Double, theta: Double, fieldRelative: Boolean): MenuItem {
+        return menuItem(name, combo) {
+            transformSelected(x, y, theta, fieldRelative)
+        }
+    }
+
     private val pointMenu = Menu(
             "Control Point",
             null,
-            menuItem("Rotate 1 degree counter-clockwise", combo(KeyCode.Q)) {
-                transformSelected(0.0, 0.0, 1.0, false)
-            },
-            menuItem("Rotate 1 degree clockwise", combo(KeyCode.W)) {
-                transformSelected(0.0, 0.0, -1.0, false)
-            },
-            menuItem("Move up 0.01 metres", combo(KeyCode.UP)) {
-                transformSelected(0.01, 0.0, 0.0, true)
-            },
-            menuItem("Move down 0.01 metres", combo(KeyCode.DOWN)) {
-                transformSelected(-0.01, 0.0, 0.0, true)
-            },
-            menuItem("Move left 0.01 metres", combo(KeyCode.LEFT)) {
-                transformSelected(0.0, 0.01, 0.0, true)
-            },
-            menuItem("Move right 0.01 metres", combo(KeyCode.RIGHT)) {
-                transformSelected(0.0, -0.01, 0.0, true)
-            },
-            menuItem("Move forward 0.01 metres", combo(KeyCode.UP, shift = true)) {
-                transformSelected(0.01, 0.0, 0.0, false)
-            },
-            menuItem("Move backward 0.01 metres", combo(KeyCode.DOWN, shift = true)) {
-                transformSelected(-0.01, 0.0, 0.0, false)
-            },
-            menuItem("Move left-normal 0.01 metres", combo(KeyCode.LEFT, shift = true)) {
-                transformSelected(0.0, 0.01, 0.0, false)
-            },
-            menuItem("Move right-normal 0.01 metres", combo(KeyCode.RIGHT, shift = true)) {
-                transformSelected(0.0, -0.01, 0.0, false)
-            }
+            transformItem("Rotate 1 degree counter-clockwise", combo(KeyCode.Q), 0.0, 0.0, 1.0, false),
+            transformItem("Rotate 1 degree clockwise", combo(KeyCode.W), 0.0, 0.0, -1.0, false),
+            transformItem("Move up 0.01 metres", combo(KeyCode.UP), 0.01, 0.0, 1.0, true),
+            transformItem("Move down 0.01 metres", combo(KeyCode.DOWN), -0.01, 0.0, 1.0, true),
+            transformItem("Move left 0.01 metres", combo(KeyCode.LEFT), 0.0, 0.01, 1.0, true),
+            transformItem("Move right 0.01 metres", combo(KeyCode.RIGHT), 0.0, -0.01, 1.0, true),
+            transformItem("Move forward 0.01 metres", combo(KeyCode.UP, shift = true), 0.01, 0.0, 1.0, false),
+            transformItem("Move reverse 0.01 metres", combo(KeyCode.DOWN, shift = true), -0.01, 0.0, 1.0, false),
+            transformItem("Move left-normal 0.01 metres", combo(KeyCode.LEFT, shift = true), 0.0, 0.01, 1.0, false),
+            transformItem("Move right-normal 0.01 metres", combo(KeyCode.RIGHT, shift = true), 0.0, -0.01, 1.0, false)
     )
+
+    private val constraintMenu = Menu("Constraints")
 
     private val viewMenu = Menu("View", null,
             MenuItem("Resize Canvas to Window"),
             menuItem("Start/Pause Simulation", combo(KeyCode.SPACE)) { onSpacePressed() },
-            menuItem("Stop Simulation", combo(KeyCode.DIGIT0)) { stopSimulation() }
+            menuItem("Stop Simulation", combo(KeyCode.DIGIT0)) { stopSimulation() },
+            menuItem("Toggle graphs", combo(KeyCode.G)) {  }
     )
 
     init {
+        for (handler in handlers) {
+            constraintMenu.items.add(MenuItem(handler.getName()).apply {
+                this.setOnAction { handler.editConstraint(stage) }
+            })
+        }
         menuBar.menus.addAll(
                 fileMenu,
                 editMenu,
                 pointMenu,
+                constraintMenu,
                 viewMenu,
                 dialogs.helpMenu
         )
