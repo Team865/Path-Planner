@@ -19,8 +19,9 @@ fun getDefaultPath(): Path {
 //        maxJerk = 5.0
     }
     val pts = listOf(
-            Pose2d(1.829, 1.219, 0.degrees),
-            Pose2d(5.120, 3.414, 32.degrees)
+            Pose2d(3.2, 0.0, 0.degrees),
+            Pose2d(6.1, 3.4, 0.degrees),
+            Pose2d(8.0, 3.4, 0.degrees)
     )
     path.controlPoints.addAll(pts.mapIndexed { index, pose2d -> ControlPoint(pose2d, index) })
 //    path.segments.add(Segment().apply {

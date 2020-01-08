@@ -1,6 +1,5 @@
 package ca.warp7.planner2
 
-import ca.warp7.planner2.fx.checkItem
 import ca.warp7.planner2.fx.combo
 import ca.warp7.planner2.fx.menuItem
 import ca.warp7.planner2.state.Constants
@@ -256,7 +255,7 @@ class Planner2 {
 
         pathStatus.putAll(mapOf(
                 "∫(dξ)" to "${path.totalDist.f2}m",
-                "∫(dt)" to "${path.trajectory.totalTimeSeconds.f2}s",
+                "∫(dt)" to "${path.totalTime.f2}s",
                 "Σ(dCurvature²)" to path.totalSumOfCurvature.f2,
                 "Optimize" to path.optimizing.toString(),
                 "MaxVel" to "", //state.maxVelString(),
@@ -299,6 +298,13 @@ class Planner2 {
         gc.fill = Color.WHITE
         gc.fillRect(0.0, 0.0, canvas.width, canvas.height)
         gc.drawImage(bg, offsetX, offsetY, w, h)
+
+        val firstState = path.trajectoryList.first().states.first().poseMeters
+        for ((index, trajectory) in path.trajectoryList.withIndex()) {
+            drawSplines(ref, trajectory, index % 2 == 1, gc, path.robotWidth, path.robotLength)
+        }
+        drawRobot(ref, gc, path.robotWidth, path.robotLength, firstState)
+
         drawAllControlPoints()
     }
 
@@ -306,7 +312,7 @@ class Planner2 {
         if (simulating) return
         for (controlPoint in path.controlPoints) {
             gc.stroke = when {
-                controlPoint.isSelected -> Color.rgb(0, 255, 255)
+                !controlPoint.isSelected -> Color.rgb(0, 255, 255)
                 else -> Color.rgb(255, 255, 0)
             }
             drawArrowForPose(ref, gc, controlPoint.pose)
