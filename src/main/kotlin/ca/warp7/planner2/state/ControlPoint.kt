@@ -2,7 +2,7 @@ package ca.warp7.planner2.state
 
 import edu.wpi.first.wpilibj.geometry.Pose2d
 
-class ControlPoint(val pose: Pose2d, val index: Int) {
+class ControlPoint(var pose: Pose2d, val index: Int) {
     var isSelected = false
 
 

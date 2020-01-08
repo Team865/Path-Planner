@@ -25,5 +25,3 @@ val handlers = listOf(
 val Number.degrees: Rotation2d get() = Rotation2d.fromDegrees(this.toDouble())
 
 fun Rotation2d.translation() = Translation2d(cos, sin)
-
-fun Translation2d.rotate(by: Rotation2d) = Translation2d(x * by.cos - y * by.sin, x * by.sin + y * by.cos)

@@ -211,20 +211,24 @@ class Planner2 {
     }
 
     fun transformSelected(x: Double, y: Double, theta: Double, fieldRelative: Boolean) {
-//        val delta = Translation2D(x, y)
-//        val rotation = Rotation2D.fromDegrees(theta)
-//        for (controlPoint in state.controlPoints) {
-//            if (controlPoint.isSelected) {
-//                val oldPose = controlPoint.pose
-//                val offset = if (fieldRelative) delta else delta.rotate(oldPose.rotation)
-//                val newPose = Pose2D(snap(oldPose.translation + offset), oldPose.rotation + rotation)
-//                controlPoint.pose = newPose
-//                val mutableWaypoints = controlPoint.segment.waypoints.toMutableList()
-//                mutableWaypoints[controlPoint.indexInSegment] = newPose
-//                controlPoint.segment.waypoints = mutableWaypoints
-//            }
-//        }
-//        regenerate()
+        val delta = Translation2d(x, y)
+        val rotation = Rotation2d.fromDegrees(theta)
+        var offset = delta
+        if (!fieldRelative) {
+            for (controlPoint in path.controlPoints) {
+                if (controlPoint.isSelected) {
+                    offset = delta.rotateBy(controlPoint.pose.rotation)
+                }
+            }
+        }
+        for (controlPoint in path.controlPoints) {
+            if (controlPoint.isSelected) {
+                val oldPose = controlPoint.pose
+                val newPose = Pose2d(snap(oldPose.translation + offset), oldPose.rotation + rotation)
+                controlPoint.pose = newPose
+            }
+        }
+        regenerate()
     }
 
     fun show() {
