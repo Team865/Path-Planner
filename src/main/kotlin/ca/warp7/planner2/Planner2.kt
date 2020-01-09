@@ -328,14 +328,13 @@ class Planner2 {
                 "curvature" to "0.0rad/m",
                 "v" to "0.0m/s",
                 "ω" to "0.0rad/s",
-                "dv/dt" to "0.0m/s^2"//,
-//                "dω/dt" to "0.0rad/s^2"
+                "dv/dt" to "0.0m/s^2"
         ))
 
         redrawScreen()
     }
 
-    fun redrawScreen() {
+    private fun redrawScreen() {
         val bg = path.background
         val imageWidthToHeight = bg.width / bg.height
 
@@ -362,10 +361,30 @@ class Planner2 {
         if (!simulating) {
             val firstState = path.trajectoryList.first().states.first().poseMeters
             drawRobot(ref, gc, path.robotWidth, path.robotLength, firstState)
+            updateSelectedPointInfo()
         }
 
         drawAllControlPoints()
         graphWindow.drawGraph()
+    }
+
+    private fun updateSelectedPointInfo() {
+        for (cp in path.controlPoints) {
+            if (cp.isSelected) {
+                pointStatus.putAll(mapOf(
+                        "t" to "---s",
+                        "x" to "${cp.pose.translation.x.f}m",
+                        "y" to "${cp.pose.translation.y.f}m",
+                        "heading" to "${cp.pose.rotation.degrees.f}deg",
+                        "curvature" to "---rad/m",
+                        "v" to "---m/s",
+                        "ω" to "---rad/s",
+                        "dv/dt" to "---m/s^2"
+                ))
+                return
+            }
+        }
+        pointStatus.clear()
     }
 
     private fun drawAllControlPoints() {
@@ -455,7 +474,6 @@ class Planner2 {
                 "v" to "${sample.velocityMetersPerSecond.f2}m/s",
                 "ω" to "${w.f2}rad/s",
                 "dv/dt" to "${sample.accelerationMetersPerSecondSq.f2}m/s^2"
-//                "dω/dt" to "${sample.dw.f2}rad/s^2"
         ))
         drawRobot(ref, gc, path.robotWidth, path.robotLength, sample.poseMeters)
         gc.stroke = Color.WHITE
