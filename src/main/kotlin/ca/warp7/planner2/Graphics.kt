@@ -1,7 +1,6 @@
 package ca.warp7.planner2
 
 import ca.warp7.planner2.state.Constants
-import ca.warp7.planner2.state.Path
 import ca.warp7.planner2.state.PixelReference
 import edu.wpi.first.wpilibj.geometry.Pose2d
 import edu.wpi.first.wpilibj.geometry.Rotation2d
@@ -9,7 +8,7 @@ import edu.wpi.first.wpilibj.geometry.Translation2d
 import edu.wpi.first.wpilibj.trajectory.Trajectory
 import javafx.scene.canvas.GraphicsContext
 import javafx.scene.paint.Color
-import javafx.scene.text.FontSmoothingType
+import javafx.scene.shape.StrokeLineCap
 import kotlin.math.abs
 
 fun drawArrowForPose(ref: PixelReference, gc: GraphicsContext, point: Pose2d) {
@@ -38,13 +37,10 @@ fun drawArrowForPose(ref: PixelReference, gc: GraphicsContext, point: Pose2d) {
     val a2 = arrowOffset + ref.scale(r2)
     val a3 = arrowOffset + ref.scale(r3)
 
-    gc.beginPath()
-    gc.vertex(a1)
-    gc.vertex(a2)
-    gc.vertex(a3)
-    gc.vertex(a1)
-    gc.closePath()
-    gc.stroke()
+    gc.lineCap = StrokeLineCap.ROUND
+    gc.lineTo(a1, a2)
+    gc.lineTo(a2, a3)
+    gc.lineTo(a3, a1)
 }
 
 fun drawSplines(

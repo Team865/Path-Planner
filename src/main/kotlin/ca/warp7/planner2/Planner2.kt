@@ -25,10 +25,12 @@ import javafx.scene.image.Image
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCombination
 import javafx.scene.input.MouseEvent
-import javafx.scene.layout.*
+import javafx.scene.layout.BorderPane
+import javafx.scene.layout.HBox
+import javafx.scene.layout.Pane
+import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import javafx.stage.Stage
-import javafx.stage.StageStyle
 import kotlin.math.min
 import kotlin.system.measureNanoTime
 
@@ -151,14 +153,14 @@ class Planner2 {
             null,
             transformItem("Rotate 1 degree counter-clockwise", combo(KeyCode.Q), 0.0, 0.0, 1.0, false),
             transformItem("Rotate 1 degree clockwise", combo(KeyCode.W), 0.0, 0.0, -1.0, false),
-            transformItem("Move up 0.01 metres", combo(KeyCode.UP), 0.01, 0.0, 1.0, true),
-            transformItem("Move down 0.01 metres", combo(KeyCode.DOWN), -0.01, 0.0, 1.0, true),
-            transformItem("Move left 0.01 metres", combo(KeyCode.LEFT), 0.0, 0.01, 1.0, true),
-            transformItem("Move right 0.01 metres", combo(KeyCode.RIGHT), 0.0, -0.01, 1.0, true),
-            transformItem("Move forward 0.01 metres", combo(KeyCode.UP, shift = true), 0.01, 0.0, 1.0, false),
-            transformItem("Move reverse 0.01 metres", combo(KeyCode.DOWN, shift = true), -0.01, 0.0, 1.0, false),
-            transformItem("Move left-normal 0.01 metres", combo(KeyCode.LEFT, shift = true), 0.0, 0.01, 1.0, false),
-            transformItem("Move right-normal 0.01 metres", combo(KeyCode.RIGHT, shift = true), 0.0, -0.01, 1.0, false)
+            transformItem("Move up 0.01 metres", combo(KeyCode.UP), 0.0, 0.01, 0.0, true),
+            transformItem("Move down 0.01 metres", combo(KeyCode.DOWN), 0.0, -0.01, 0.0, true),
+            transformItem("Move left 0.01 metres", combo(KeyCode.LEFT), -0.01, 0.0, 0.0, true),
+            transformItem("Move right 0.01 metres", combo(KeyCode.RIGHT),  0.01, 0.0, 0.0, true),
+            transformItem("Move forward 0.01 metres", combo(KeyCode.UP, shift = true), 0.01, 0.0, 0.0, false),
+            transformItem("Move reverse 0.01 metres", combo(KeyCode.DOWN, shift = true), -0.01, 0.0, 0.0, false),
+            transformItem("Move left-normal 0.01 metres", combo(KeyCode.LEFT, shift = true), 0.0, 0.01, 0.0, false),
+            transformItem("Move right-normal 0.01 metres", combo(KeyCode.RIGHT, shift = true), 0.0, -0.01, 0.0, false)
     )
 
     private val constraintMenu = Menu("Constraints")
@@ -197,7 +199,36 @@ class Planner2 {
         }
     }
 
+
     private fun onMouseClick(x: Double, y: Double) {
+        if (simulating) return
+        val mouseOnField = ref.inverseTransform(Translation2d(x, y))
+        println(mouseOnField)
+
+        var selectionChanged = false
+
+        for (controlPoint in path.controlPoints) {
+            if (controlPoint.isSelected) {
+                if (controlDown) {
+                    if (controlPoint.pose.translation.getDistance(mouseOnField) < Constants.kControlPointCircleSize) {
+                        controlPoint.isSelected = false
+                        selectionChanged = true
+                    }
+                } else {
+                    controlPoint.isSelected = false
+                    selectionChanged = true
+                }
+            } else {
+                if (controlPoint.pose.translation.getDistance(mouseOnField) < Constants.kControlPointCircleSize) {
+                    controlPoint.isSelected = true
+                    selectionChanged = true
+                }
+            }
+        }
+
+        if (selectionChanged) {
+            redrawScreen()
+        }
 
     }
 
@@ -215,7 +246,7 @@ class Planner2 {
         graphWindow.show()
     }
 
-    fun transformSelected(x: Double, y: Double, theta: Double, fieldRelative: Boolean) {
+    private fun transformSelected(x: Double, y: Double, theta: Double, fieldRelative: Boolean) {
         val delta = Translation2d(x, y)
         val rotation = Rotation2d.fromDegrees(theta)
         var offset = delta
@@ -279,7 +310,6 @@ class Planner2 {
                 "dω/dt" to "0.0rad/s^2"
         ))
 
-        pointStatus["Test"] = "Hello World"
         redrawScreen()
     }
 
@@ -310,6 +340,7 @@ class Planner2 {
         drawRobot(ref, gc, path.robotWidth, path.robotLength, firstState)
 
         drawAllControlPoints()
+        graphWindow.drawGraph()
     }
 
     private fun drawAllControlPoints() {

@@ -32,6 +32,7 @@ class Path {
     fun regenerateAll() {
         val x = QuinticHermiteSpline.parameterize(controlPoints.map { it.pose }
                 .zipWithNext { a, b -> QuinticHermiteSpline.fromPose(a, b) })
+        trajectoryList.clear()
         trajectoryList.add(TrajectoryParameterizer.timeParameterizeTrajectory(x, listOf(),
                 0.0, 0.0, 3.0,
                 3.0, false))
