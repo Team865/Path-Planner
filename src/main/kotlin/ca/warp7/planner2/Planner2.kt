@@ -197,38 +197,22 @@ class Planner2 {
         }
     }
 
-    fun onMouseClick(x: Double, y: Double) {
+    private fun onMouseClick(x: Double, y: Double) {
 
     }
 
-    fun onSpacePressed() {
+    private fun onSpacePressed() {
 
     }
 
-    fun stopSimulation() {
+    private fun stopSimulation() {
 
     }
 
-    fun toggleGraphs() {
-        val ns = Stage()
-        ns.title = "Graphs"
-        ns.initOwner(stage)
-        ns.initStyle(StageStyle.UTILITY)
-        val canvas = Canvas()
-        val cont = Pane(canvas)
-        val scene = Scene(cont)
-        cont.prefWidth = 400.0
-        cont.prefHeight = 400.0
+    private val graphWindow = GraphWindow(stage, path)
 
-        ns.scene = scene
-        ns.show()
-        val listener = ChangeListener<Number> { _, _, _ ->
-            drawGraph(canvas.graphicsContext2D, path)
-        }
-        canvas.widthProperty().addListener(listener)
-        canvas.heightProperty().addListener(listener)
-        canvas.widthProperty().bind(cont.widthProperty())
-        canvas.heightProperty().bind(cont.heightProperty())
+    private fun toggleGraphs() {
+        graphWindow.show()
     }
 
     fun transformSelected(x: Double, y: Double, theta: Double, fieldRelative: Boolean) {
