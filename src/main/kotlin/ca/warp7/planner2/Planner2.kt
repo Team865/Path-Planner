@@ -177,7 +177,14 @@ class Planner2 {
                 trajectoryMenu,
                 dialogs.helpMenu
         )
-        canvas.setOnMouseClicked { onMouseClick(it.x, it.y) }
+        canvas.setOnMousePressed {
+            onMousePressed(it.x, it.y)
+            it.consume()
+        }
+        canvas.setOnMouseDragged {
+            drag(it.x, it.y)
+            it.consume()
+        }
         stage.scene.setOnKeyPressed {
             if (it.code == KeyCode.CONTROL) {
                 controlDown = true
@@ -191,26 +198,30 @@ class Planner2 {
     }
 
 
-    private fun onMouseClick(x: Double, y: Double) {
+    private fun onMousePressed(x: Double, y: Double) {
         if (simulating) return
         val mouseOnField = ref.inverseTransform(Translation2d(x, y))
-        println(mouseOnField)
 
         var selectionChanged = false
 
         for (controlPoint in path.controlPoints) {
+            val inRange = controlPoint.pose.translation
+                    .getDistance(mouseOnField) < Constants.kControlPointCircleSize
             if (controlPoint.isSelected) {
                 if (controlDown) {
-                    if (controlPoint.pose.translation.getDistance(mouseOnField) < Constants.kControlPointCircleSize) {
+                    if (inRange) {
                         controlPoint.isSelected = false
                         selectionChanged = true
                     }
                 } else {
-                    controlPoint.isSelected = false
-                    selectionChanged = true
+                    if (!inRange) {
+                        controlPoint.isSelected = false
+                        selectionChanged = true
+                    }
                 }
+
             } else {
-                if (controlPoint.pose.translation.getDistance(mouseOnField) < Constants.kControlPointCircleSize) {
+                if (inRange) {
                     controlPoint.isSelected = true
                     selectionChanged = true
                 }
@@ -220,7 +231,22 @@ class Planner2 {
         if (selectionChanged) {
             redrawScreen()
         }
+    }
 
+    private fun drag(x:Double, y: Double) {
+        if (simulating) return
+        val mouseOnField = ref.inverseTransform(Translation2d(x, y))
+        var changed = false
+        for (controlPoint in path.controlPoints) {
+            if (controlPoint.isSelected) {
+                controlPoint.pose = Pose2d(mouseOnField, controlPoint.pose.rotation)
+                changed = true
+                break
+            }
+        }
+        if (changed) {
+            regenerate()
+        }
     }
 
     private val graphWindow = GraphWindow(stage, path)
