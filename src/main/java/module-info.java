@@ -7,4 +7,6 @@ module path.planner {
     requires com.fasterxml.jackson.core;
 
     exports ca.warp7.planner2;
+    exports ca.warp7.frc2020.lib.trajectory;
+    exports edu.wpi.first.hal;
 }

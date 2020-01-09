@@ -22,8 +22,8 @@ class Dialogs(val stage: Stage) {
 
     private val aboutButton = menuItem("About", combo(KeyCode.F1, shift = true)) {
         val dialog = Dialog<ButtonType>()
-        dialog.title = "About FRC Drive Trajectory Planner"
-        dialog.contentText = """FRC Drive Trajectory Planner version 2020.1.0
+        dialog.title = "About FRC Drive Path Planner"
+        dialog.contentText = """FRC Drive Path Planner version 2020.1.0
 Copyright (c) 2019,2020 Team 865 WARP7
 Licensed under MIT
 OS:  ${System.getProperty("os.name")} ${System.getProperty("os.arch")}
@@ -37,14 +37,10 @@ Max Heap Size: ${Runtime.getRuntime().maxMemory() / 1024 / 1024}Mb"""
     }
 
     private val githubButton = menuItem("Show Project on GitHub", null) {
-        PlannerApplication.host?.showDocument("https://github.com/Team865/Trajectory-Planner/")
+        PlannerApplication.host?.showDocument("https://github.com/Team865/Path-Planner/")
     }
 
-    private val githubButton2 = menuItem("Show Library on GitHub", null) {
-        PlannerApplication.host?.showDocument("https://github.com/Team865/FRC-Commons-Kotlin/")
-    }
-
-    val helpMenu = Menu("Help", null, shortcutButton, githubButton, githubButton2, aboutButton)
+    val helpMenu = Menu("Help", null, shortcutButton, githubButton, aboutButton)
 
     fun showTextBox(title: String, content: String) {
         val dialog = Dialog<ButtonType>()

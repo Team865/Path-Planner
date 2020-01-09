@@ -1,8 +1,10 @@
 package ca.warp7.planner2.state
 
 import ca.warp7.frc2020.lib.trajectory.QuinticHermiteSpline
+import edu.wpi.first.wpilibj.kinematics.DifferentialDriveKinematics
 import edu.wpi.first.wpilibj.trajectory.Trajectory
 import edu.wpi.first.wpilibj.trajectory.TrajectoryParameterizer
+import edu.wpi.first.wpilibj.trajectory.constraint.DifferentialDriveKinematicsConstraint
 import javafx.scene.image.Image
 
 class Path {
@@ -19,8 +21,8 @@ class Path {
     var totalSumOfCurvature = 0.0
     var totalDist = 0.0
 
-    var robotWidth = 0.4
-    var robotLength = 0.6
+    var robotWidth = 0.8
+    var robotLength = 1.0
 
     var maxVelocity = 3.0
     var maxAcceleration = 3.0
@@ -33,7 +35,12 @@ class Path {
         val x = QuinticHermiteSpline.parameterize(controlPoints.map { it.pose }
                 .zipWithNext { a, b -> QuinticHermiteSpline.fromPose(a, b) })
         trajectoryList.clear()
-        trajectoryList.add(TrajectoryParameterizer.timeParameterizeTrajectory(x, listOf(),
+        trajectoryList.add(TrajectoryParameterizer.timeParameterizeTrajectory(x, listOf(
+                DifferentialDriveKinematicsConstraint(
+                        DifferentialDriveKinematics(1.0),
+                        3.0
+                )
+        ),
                 0.0, 0.0, 3.0,
                 3.0, false))
         totalTime = trajectoryList.sumByDouble { it.totalTimeSeconds }

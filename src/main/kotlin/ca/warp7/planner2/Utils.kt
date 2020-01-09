@@ -14,7 +14,7 @@ fun snap(t: Translation2d): Translation2d {
     return Translation2d((t.x * 1000).toInt() / 1000.0, (t.y * 1000).toInt() / 1000.0)
 }
 
-val handlers = listOf(
+val constraintHandlers = listOf(
         DifferentialDriveKinematicsHandler(),
         DifferentialDriveVoltageHandler(),
         CentripetalAccelerationHandler(),

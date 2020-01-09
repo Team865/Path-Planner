@@ -17,10 +17,7 @@ import javafx.geometry.Insets
 import javafx.scene.Scene
 import javafx.scene.canvas.Canvas
 import javafx.scene.canvas.GraphicsContext
-import javafx.scene.control.Label
-import javafx.scene.control.Menu
-import javafx.scene.control.MenuBar
-import javafx.scene.control.MenuItem
+import javafx.scene.control.*
 import javafx.scene.image.Image
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCombination
@@ -115,12 +112,11 @@ class Planner2 {
 //                regenerate()
             },
             MenuItem("Generate WPILib Java function"),
-            MenuItem("Generate WPILib C++ function"),
-            MenuItem("Generate PathFinder-style CSV")
+            MenuItem("Generate WPILib C++ function")
     )
 
     private val editMenu = Menu(
-            "Edit",
+            "Path",
             null,
             MenuItem("Insert Spline Control Point"),
             MenuItem("Insert Reverse Direction"),
@@ -147,7 +143,7 @@ class Planner2 {
     }
 
     private val pointMenu = Menu(
-            "Control Point",
+            "Selection",
             null,
             transformItem("Rotate 1 degree counter-clockwise", combo(KeyCode.Q), 0.0, 0.0, 1.0, false),
             transformItem("Rotate 1 degree clockwise", combo(KeyCode.W), 0.0, 0.0, -1.0, false),
@@ -161,18 +157,16 @@ class Planner2 {
             transformItem("Move right-normal 0.01 metres", combo(KeyCode.RIGHT, shift = true), 0.0, -0.01, 0.0, false)
     )
 
-    private val constraintMenu = Menu("Constraints")
-
-    private val viewMenu = Menu("View", null,
-            MenuItem("Resize Canvas to Window"),
+    private val trajectoryMenu = Menu("Trajectory", null,
             menuItem("Start/Pause Simulation", combo(KeyCode.SPACE)) { onSpacePressed() },
             menuItem("Stop Simulation", combo(KeyCode.DIGIT0)) { stopSimulation() },
-            menuItem("Toggle graphs", combo(KeyCode.G, control = true)) { toggleGraphs() }
+            menuItem("Graphs", combo(KeyCode.G, control = true)) { showGraphs() },
+            SeparatorMenuItem()
     )
 
     init {
-        for (handler in handlers) {
-            constraintMenu.items.add(MenuItem(handler.getName()).apply {
+        for (handler in constraintHandlers) {
+            trajectoryMenu.items.add(MenuItem(handler.getName()).apply {
                 this.setOnAction { handler.editConstraint(stage) }
             })
         }
@@ -180,8 +174,7 @@ class Planner2 {
                 fileMenu,
                 editMenu,
                 pointMenu,
-                constraintMenu,
-                viewMenu,
+                trajectoryMenu,
                 dialogs.helpMenu
         )
         canvas.setOnMouseClicked { onMouseClick(it.x, it.y) }
@@ -240,7 +233,7 @@ class Planner2 {
 
     private val graphWindow = GraphWindow(stage, path)
 
-    private fun toggleGraphs() {
+    private fun showGraphs() {
         graphWindow.show()
     }
 
