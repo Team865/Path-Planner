@@ -215,15 +215,20 @@ class Planner2 {
         ns.initOwner(stage)
         ns.initStyle(StageStyle.UTILITY)
         val canvas = Canvas()
-        canvas.width = 800.0
-        canvas.height = 800.0
         val cont = Pane(canvas)
         val scene = Scene(cont)
-        ns.width = 400.0
-        ns.height = 400.0
+        cont.prefWidth = 400.0
+        cont.prefHeight = 400.0
+
         ns.scene = scene
         ns.show()
-        drawGraph(canvas.graphicsContext2D, path)
+        val listener = ChangeListener<Number> { _, _, _ ->
+            drawGraph(canvas.graphicsContext2D, path)
+        }
+        canvas.widthProperty().addListener(listener)
+        canvas.heightProperty().addListener(listener)
+        canvas.widthProperty().bind(cont.widthProperty())
+        canvas.heightProperty().bind(cont.heightProperty())
     }
 
     fun transformSelected(x: Double, y: Double, theta: Double, fieldRelative: Boolean) {
