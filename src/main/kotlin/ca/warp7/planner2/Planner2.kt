@@ -76,8 +76,6 @@ class Planner2 {
         }
     }
 
-    val referenceImage = Image(Planner2::class.java.getResourceAsStream("/reference.png"))
-
     init {
         menuBar.isUseSystemMenuBar = true
         pathStatus.addListener(MapChangeListener {
