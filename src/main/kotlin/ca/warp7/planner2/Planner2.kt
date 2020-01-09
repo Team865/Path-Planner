@@ -8,6 +8,7 @@ import ca.warp7.planner2.state.getDefaultPath
 import edu.wpi.first.wpilibj.geometry.Pose2d
 import edu.wpi.first.wpilibj.geometry.Rotation2d
 import edu.wpi.first.wpilibj.geometry.Translation2d
+import javafx.animation.AnimationTimer
 import javafx.application.Platform
 import javafx.beans.value.ChangeListener
 import javafx.collections.FXCollections
@@ -40,7 +41,6 @@ class Planner2 {
     val canvas: Canvas = Canvas()
     val canvasContainer = Pane(canvas)
 
-    var simulating = false
 
     val pathStatus: ObservableMap<String, String> = FXCollections
             .observableMap<String, String>(LinkedHashMap())
@@ -92,13 +92,13 @@ class Planner2 {
         stage.icons.add(Image(Planner2::class.java.getResourceAsStream("/icon.png")))
     }
 
-    val dialogs = Dialogs(stage)
-    val gc: GraphicsContext = canvas.graphicsContext2D
+    private val dialogs = Dialogs(stage)
+    private val gc: GraphicsContext = canvas.graphicsContext2D
 
-    var controlDown = false
+    private var controlDown = false
 
-    val path = getDefaultPath()
-    val ref = PixelReference()
+    private val path = getDefaultPath()
+    private val ref = PixelReference()
 
     private val fileMenu = Menu("File", null,
             menuItem("New/Open Trajectory", combo(KeyCode.N, control = true)) {
@@ -223,14 +223,6 @@ class Planner2 {
 
     }
 
-    private fun onSpacePressed() {
-
-    }
-
-    private fun stopSimulation() {
-
-    }
-
     private val graphWindow = GraphWindow(stage, path)
 
     private fun showGraphs() {
@@ -297,8 +289,8 @@ class Planner2 {
                 "curvature" to "0.0rad/m",
                 "v" to "0.0m/s",
                 "ω" to "0.0rad/s",
-                "dv/dt" to "0.0m/s^2",
-                "dω/dt" to "0.0rad/s^2"
+                "dv/dt" to "0.0m/s^2"//,
+//                "dω/dt" to "0.0rad/s^2"
         ))
 
         redrawScreen()
@@ -324,11 +316,14 @@ class Planner2 {
         gc.fillRect(0.0, 0.0, canvas.width, canvas.height)
         gc.drawImage(bg, offsetX, offsetY, w, h)
 
-        val firstState = path.trajectoryList.first().states.first().poseMeters
+
         for ((index, trajectory) in path.trajectoryList.withIndex()) {
             drawSplines(ref, trajectory, index % 2 == 1, gc, path.robotWidth, path.robotLength)
         }
-        drawRobot(ref, gc, path.robotWidth, path.robotLength, firstState)
+        if (!simulating) {
+            val firstState = path.trajectoryList.first().states.first().poseMeters
+            drawRobot(ref, gc, path.robotWidth, path.robotLength, firstState)
+        }
 
         drawAllControlPoints()
         graphWindow.drawGraph()
@@ -343,5 +338,88 @@ class Planner2 {
             }
             drawArrowForPose(ref, gc, controlPoint.pose)
         }
+    }
+
+    var simFrameCount = 0
+
+    private val simulationTimer = object : AnimationTimer() {
+        override fun handle(now: Long) {
+            if (simFrameCount % 3 == 0) {
+                handleSimulation()
+            }
+        }
+    }
+
+    var simulating = false
+    var simPaused = false
+    var simElapsed = 0.0
+    var simElapsedChanged = false
+    var lastTime = 0.0
+
+    private fun onSpacePressed() {
+        if (simulating) {
+            simPaused = !simPaused
+        } else {
+            simulating = true
+            simElapsed = 0.0
+            simFrameCount = 0
+            simPaused = false
+            lastTime = System.currentTimeMillis() / 1000.0
+            redrawScreen()
+            simulationTimer.start()
+        }
+    }
+
+    private fun stopSimulation() {
+        simulating = false
+        simPaused = false
+        redrawScreen()
+        simulationTimer.stop()
+    }
+
+    fun handleSimulation() {
+        val nt = System.currentTimeMillis() / 1000.0
+        val dt = nt - lastTime
+        lastTime = nt
+        if (simPaused) {
+            if (!simElapsedChanged) return
+            simElapsedChanged = false
+        } else simElapsed += dt
+        val t = simElapsed
+        if (t > path.totalTime) {
+            stopSimulation()
+            return
+        }
+        var trackedTime = 0.0
+        var simSeg = path.trajectoryList.first()
+        for (seg in path.trajectoryList) {
+            if ((trackedTime + seg.totalTimeSeconds) > t) {
+                simSeg = seg
+                break
+            }
+            trackedTime += seg.totalTimeSeconds
+        }
+        val relativeTime = t - trackedTime
+
+        val sample = simSeg.sample(relativeTime)
+
+        redrawScreen()
+
+        val w = sample.velocityMetersPerSecond * sample.curvatureRadPerMeter
+
+        pointStatus.putAll(mapOf(
+                "t" to "${sample.timeSeconds.f2}s",
+                "x" to "${sample.poseMeters.translation.x.f2}m",
+                "y" to "${sample.poseMeters.translation.y.f2}m",
+                "heading" to "${sample.poseMeters.rotation.degrees.f2}deg",
+                "curvature" to "${sample.curvatureRadPerMeter.f2}rad/m",
+                "v" to "${sample.velocityMetersPerSecond.f2}m/s",
+                "ω" to "${w.f2}rad/s",
+                "dv/dt" to "${sample.accelerationMetersPerSecondSq.f2}m/s^2"
+//                "dω/dt" to "${sample.dw.f2}rad/s^2"
+        ))
+        drawRobot(ref, gc, path.robotWidth, path.robotLength, sample.poseMeters)
+        gc.stroke = Color.WHITE
+        drawArrowForPose(ref, gc, sample.poseMeters)
     }
 }
