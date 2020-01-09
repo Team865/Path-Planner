@@ -26,4 +26,6 @@ val Number.degrees: Rotation2d get() = Rotation2d.fromDegrees(this.toDouble())
 
 fun Rotation2d.translation() = Translation2d(cos, sin)
 
+fun Translation2d.direction() = Rotation2d(x, y)
+
 fun Rotation2d.normal() = Rotation2d(-sin, cos)

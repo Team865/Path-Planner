@@ -197,6 +197,7 @@ class Planner2 {
         }
     }
 
+    var isDraggingAngle = false
 
     private fun onMousePressed(x: Double, y: Double) {
         if (simulating) return
@@ -204,9 +205,21 @@ class Planner2 {
 
         var selectionChanged = false
 
+        isDraggingAngle = false
+
         for (controlPoint in path.controlPoints) {
-            val inRange = controlPoint.pose.translation
+
+            val posInRange = controlPoint.pose.translation
                     .getDistance(mouseOnField) < Constants.kControlPointCircleSize
+
+            val headingInRange = controlPoint.pose.translation.plus(controlPoint.pose.rotation
+                    .translation().times(Constants.kArrowLength))
+                    .getDistance(mouseOnField) < Constants.kArrowTipLength
+
+            // Make sure draggingAngle is not overpowered by other points
+            isDraggingAngle = isDraggingAngle || headingInRange
+
+            val inRange = posInRange || headingInRange
             if (controlPoint.isSelected) {
                 if (controlDown) {
                     if (inRange) {
@@ -219,7 +232,6 @@ class Planner2 {
                         selectionChanged = true
                     }
                 }
-
             } else {
                 if (inRange) {
                     controlPoint.isSelected = true
@@ -236,16 +248,17 @@ class Planner2 {
     private fun drag(x:Double, y: Double) {
         if (simulating) return
         val mouseOnField = ref.inverseTransform(Translation2d(x, y))
-        var changed = false
         for (controlPoint in path.controlPoints) {
             if (controlPoint.isSelected) {
-                controlPoint.pose = Pose2d(mouseOnField, controlPoint.pose.rotation)
-                changed = true
-                break
+                if (isDraggingAngle) {
+                    controlPoint.pose = Pose2d(controlPoint.pose.translation,
+                            mouseOnField.minus(controlPoint.pose.translation).direction())
+                } else {
+                    controlPoint.pose = Pose2d(mouseOnField, controlPoint.pose.rotation)
+                }
+                regenerate()
+                return
             }
-        }
-        if (changed) {
-            regenerate()
         }
     }
 
