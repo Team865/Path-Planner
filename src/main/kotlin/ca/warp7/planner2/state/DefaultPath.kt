@@ -13,8 +13,8 @@ fun getDefaultPath(): Path {
         maxVelocity = 3.0
         maxAcceleration = 3.0
 //        maxCentripetalAcceleration = 4.0
-        robotLength = 0.42
-        robotWidth = 0.33
+        robotLength = 15 * 0.0254
+        robotWidth = 13 * 0.0254
 //        wheelbaseRadius = 0.5
 //        maxJerk = 5.0
     }

@@ -121,17 +121,10 @@ class Planner2 {
             MenuItem("Insert Spline Control Point"),
             MenuItem("Insert Reverse Direction"),
             MenuItem("Insert Quick Turn"),
-            MenuItem("Delete Point(s)"),
             MenuItem("Reverse Point(s)"),
-            MenuItem("Snap Point(s) to 0.01m"),
-            MenuItem("Edit Point"),
-            MenuItem("Add Change to Point(s)"),
-            menuItem("Mirror path about x axis", combo(KeyCode.M)) {
-
-            },
             menuItem("Select All", combo(KeyCode.A, control = true)) {
-                //                for (cp in state.controlPoints) cp.isSelected = true
-//                redrawScreen()
+                for (cp in path.controlPoints) cp.isSelected = true
+                redrawScreen()
             }
     )
 
@@ -142,9 +135,7 @@ class Planner2 {
         }
     }
 
-    private val pointMenu = Menu(
-            "Selection",
-            null,
+    private val stopMenu = Menu("Transform Point(s) by Steps", null,
             transformItem("Rotate 1 degree counter-clockwise", combo(KeyCode.Q), 0.0, 0.0, 1.0, false),
             transformItem("Rotate 1 degree clockwise", combo(KeyCode.W), 0.0, 0.0, -1.0, false),
             transformItem("Move up 0.01 metres", combo(KeyCode.UP), 0.0, 0.01, 0.0, true),
@@ -156,6 +147,23 @@ class Planner2 {
             transformItem("Move left-normal 0.01 metres", combo(KeyCode.LEFT, shift = true), 0.0, 0.01, 0.0, false),
             transformItem("Move right-normal 0.01 metres", combo(KeyCode.RIGHT, shift = true), 0.0, -0.01, 0.0, false)
     )
+
+    private val pointMenu = Menu(
+            "Selection",
+            null,
+            menuItem("Delete Point(s)", combo(KeyCode.D)) {
+                if (path.controlPoints.count { !it.isSelected } >= 2) {
+                    path.controlPoints.removeIf { it.isSelected }
+                    regenerate()
+                }
+            },
+            menuItem("Edit Point(s)", combo(KeyCode.E)) {
+
+            },
+            menuItem("Transform Point(s)", combo(KeyCode.T)) {
+
+            },
+            stopMenu)
 
     private val trajectoryMenu = Menu("Trajectory", null,
             menuItem("Start/Pause Simulation", combo(KeyCode.SPACE)) { onSpacePressed() },
@@ -391,8 +399,8 @@ class Planner2 {
         if (simulating) return
         for (controlPoint in path.controlPoints) {
             gc.stroke = when {
-                !controlPoint.isSelected -> Color.rgb(0, 255, 255)
-                else -> Color.rgb(255, 255, 0)
+                controlPoint.isSelected -> Color.rgb(0, 255, 255)
+                else -> Color.WHITE
             }
             drawArrowForPose(ref, gc, controlPoint.pose)
         }
@@ -476,7 +484,7 @@ class Planner2 {
                 "dv/dt" to "${sample.accelerationMetersPerSecondSq.f2}m/s^2"
         ))
         drawRobot(ref, gc, path.robotWidth, path.robotLength, sample.poseMeters)
-        gc.stroke = Color.WHITE
+        gc.stroke = Color.YELLOW
         drawArrowForPose(ref, gc, sample.poseMeters)
     }
 }
